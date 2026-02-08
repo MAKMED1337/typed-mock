@@ -1,0 +1,22 @@
+[project]
+name = "typed-mock"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = ["pydantic>=2.12.5"]
+
+[dependency-groups]
+dev = ["mypy[faster-cache]>=1.19.1", "pytest>=9.0.2"]
+
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[tool.mypy]
+strict = true
+allow_redefinition = true
+allow_redefinition_new = true
+local_partial_types = true
+follow_untyped_imports = true
+plugins = ["pydantic.mypy"]
