@@ -1,7 +1,8 @@
 from collections.abc import Callable
 
 from .common import ValidationConfig
-from .funcs import FakeMethodMember, Mock, ProducerBuilder
+from .funcs import FakeMethodMember, ProducerBuilder
+from .mock import create_mock
 
 
 class Mocker:
@@ -12,7 +13,7 @@ class Mocker:
         self.config = config
 
     def mock[T](self, cls: type[T]) -> T:
-        return Mock[T](cls, self.config)  # type: ignore[return-value]
+        return create_mock(cls, self.config)
 
     def when[**P, R](self, func: Callable[P, R]) -> ProducerBuilder[P, R]:
         if not isinstance(func, FakeMethodMember):

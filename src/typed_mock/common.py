@@ -4,5 +4,5 @@ FOREVER = -1
 
 
 class ValidationConfig(BaseModel):
-    validate_function_existance: bool = True
+    raise_on_attribute: bool = True  # Any callable is considered to be a non attribute
     validate_call_arguments: bool = True

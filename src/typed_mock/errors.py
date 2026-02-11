@@ -8,3 +8,7 @@ class ValueIsNotSetError(BaseException):
 
 class InvalidProducerError(BaseException):
     pass
+
+
+class AttributeAccessedError(BaseException):
+    pass
