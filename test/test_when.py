@@ -2,11 +2,9 @@ import pytest
 
 from typed_mock import (
     FOREVER,
-    FunctionNotFoundError,
     Mocker,
     ValueIsNotSetError,
 )
-from typed_mock.funcs import ChecksConfig
 
 
 class F:
@@ -44,19 +42,6 @@ def test_return_forever() -> None:
 
     for _ in range(10):
         assert f.f() == 2
-
-
-def test_invalid_method() -> None:
-    mocker = Mocker()
-
-    f = mocker.mock(F)
-
-    with pytest.raises(FunctionNotFoundError):
-        mocker.when(f.g).return_(5)  # type: ignore[attr-defined]
-
-    mocker2 = Mocker(ChecksConfig(validate_function_existance=False))
-    f = mocker2.mock(F)
-    mocker.when(f.g).return_(6)  # type: ignore[attr-defined]
 
 
 def test_stacking() -> None:

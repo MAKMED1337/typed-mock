@@ -1,5 +1,7 @@
 from collections.abc import Callable, Generator
 
+from .common import FOREVER
+
 
 def _make_callable[**P, R](value: R) -> Callable[P, R]:
     return lambda *_, **__: value
@@ -10,9 +12,6 @@ def _make_raise[**P, R, E: BaseException](error: E | type[E]) -> Callable[P, R]:
         raise error
 
     return func
-
-
-FOREVER = -1
 
 
 def _make_generator[T](obj: T, times: int) -> Generator[T]:

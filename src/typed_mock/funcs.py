@@ -3,6 +3,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
+from .common import ValidationConfig
 from .errors import FunctionNotFoundError, InvalidProducerError, ValueIsNotSetError
 from .impl import (
     raise_impl,
@@ -13,9 +14,10 @@ type FakeMethod = Callable[..., Any]
 type Producer = Generator[FakeMethod]
 
 
-class FakeMethodMember:
-    def __init__(self) -> None:
+class FakeMethodMember[**P, R]:
+    def __init__(self, original_method: Callable[P, R] | None) -> None:
         self.__producers: list[Producer] = []
+        self.__original_method = original_method
 
     def add_producer(self, producer: Producer) -> None:
         self.__producers.append(producer)
@@ -33,21 +35,33 @@ class FakeMethodMember:
         raise ValueIsNotSetError
 
 
-class ChecksConfig(BaseModel):
-    validate_function_existance: bool = True
-
-
 class Data[T](BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     cls: type[T]
-    config: ChecksConfig
-    fake_methods: dict[str, FakeMethodMember]
+    config: ValidationConfig
+    fake_methods: dict[str, FakeMethodMember[Any, Any]]
 
 
 class Mock[T]:
-    def __init__(self, cls: type[T], config: ChecksConfig) -> None:
+    def __init__(self, cls: type[T], config: ValidationConfig) -> None:
         self.__data = Data[T](cls=cls, config=config, fake_methods={})
+
+    def __get_original_function(self, name: str) -> Any | None:  # noqa: ANN401
+        data = self.__data
+        try:
+            func = getattr(data.cls, name)
+        except AttributeError as e:
+            if data.config.validate_function_existance:
+                raise FunctionNotFoundError from e
+            return None
+
+        if callable(func):
+            return func
+
+        if data.config.validate_function_existance:
+            raise FunctionNotFoundError
+        return None
 
     def __setattr__(self, name: str, value: object) -> None:
         if name in ('_Mock__data', '__orig_class__'):
@@ -61,25 +75,23 @@ class Mock[T]:
             raise InvalidProducerError from e
 
         data = self.__data
-        config = data.config
-        if config.validate_function_existance and name not in data.cls.__dict__:
-            raise FunctionNotFoundError
+
+        original_method = self.__get_original_function(name)
 
         fake_methods = data.fake_methods
-        fake_methods.setdefault(name, FakeMethodMember()).add_producer(producer)
+        fake_methods.setdefault(name, FakeMethodMember(original_method)).add_producer(producer)
 
     def __getattr__(self, name: str) -> object:
         data = self.__data
-        config = data.config
-        if config.validate_function_existance and name not in data.cls.__dict__:
-            raise FunctionNotFoundError
+
+        original_method = self.__get_original_function(name)
 
         producers = data.fake_methods
-        return producers.setdefault(name, FakeMethodMember())
+        return producers.setdefault(name, FakeMethodMember(original_method))
 
 
 class ProducerBuilder[**P, R]:
-    def __init__(self, fake_method: FakeMethodMember) -> None:
+    def __init__(self, fake_method: FakeMethodMember[P, R]) -> None:
         self.fake_method = fake_method
 
     def return_(self, *values: R, times: int = 1) -> 'ProducerBuilder[P, R]':
@@ -99,21 +111,3 @@ class ProducerBuilder[**P, R]:
     def raise_[E: BaseException](self, error: E | type[E], *, times: int = 1) -> 'ProducerBuilder[P, R]':
         self.fake_method.add_producer(raise_impl(error, times=times))
         return self
-
-
-class Mocker:
-    def __init__(self, config: ChecksConfig | None = None) -> None:
-        if config is None:
-            config = ChecksConfig()
-
-        self.config = config
-
-    def mock[T](self, cls: type[T]) -> T:
-        return Mock[T](cls, self.config)  # type: ignore[return-value]
-
-    def when[**P, R](self, func: Callable[P, R]) -> ProducerBuilder[P, R]:
-        if not isinstance(func, FakeMethodMember):
-            msg = f'Invalid argument to function `when`, expected class method, got: {type(func)}'
-            raise TypeError(msg)
-
-        return ProducerBuilder(func)

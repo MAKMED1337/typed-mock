@@ -1,6 +1,7 @@
+from .common import FOREVER, ValidationConfig
 from .errors import FunctionNotFoundError, InvalidProducerError, ValueIsNotSetError
-from .funcs import Mocker, Producer, ProducerBuilder
-from .impl import FOREVER
+from .funcs import Producer, ProducerBuilder
+from .mocker import Mocker
 
 __all__ = [
     'FOREVER',
@@ -9,5 +10,6 @@ __all__ = [
     'Mocker',
     'Producer',
     'ProducerBuilder',
+    'ValidationConfig',
     'ValueIsNotSetError',
 ]
