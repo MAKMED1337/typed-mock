@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 
-from typed_mock import AttributeAccessedError, Mocker, ValidationConfig
+from typed_mock import FieldAccessedError, Mocker, ValidationConfig
 from typed_mock.common import FOREVER
 
 
@@ -39,10 +39,10 @@ def test_mocking_nonfunction() -> None:
     _ = f.cl
     _ = f.lam
     _ = f.func  # type: ignore[misc]
-    with pytest.raises(AttributeAccessedError):
+    with pytest.raises(FieldAccessedError):
         _ = f.g
 
-    mocker = Mocker(ValidationConfig(raise_on_attribute=False))
+    mocker = Mocker(ValidationConfig(raise_on_field_access=False))
     f = mocker.mock(F)
     _ = f.g
     _ = f.lam

@@ -1,14 +1,15 @@
 from .common import FOREVER, ValidationConfig
-from .errors import AttributeAccessedError, ValueIsNotSetError
-from .funcs import Producer, ProducerBuilder
+from .errors import FieldAccessedError, ValueIsNotSetError
+from .fake_method_builder import FakeMethodBuilder
+from .funcs import Producer
 from .mocker import Mocker
 
 __all__ = [
     'FOREVER',
-    'AttributeAccessedError',
+    'FakeMethodBuilder',
+    'FieldAccessedError',
     'Mocker',
     'Producer',
-    'ProducerBuilder',
     'ValidationConfig',
     'ValueIsNotSetError',
 ]

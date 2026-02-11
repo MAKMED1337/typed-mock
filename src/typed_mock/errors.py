@@ -2,5 +2,5 @@ class ValueIsNotSetError(BaseException):
     pass
 
 
-class AttributeAccessedError(BaseException):
+class FieldAccessedError(BaseException):
     pass

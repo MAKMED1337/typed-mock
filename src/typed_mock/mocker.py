@@ -1,7 +1,8 @@
 from collections.abc import Callable
 
 from .common import ValidationConfig
-from .funcs import FakeMethodMember, ProducerBuilder
+from .fake_method_builder import FakeMethodBuilder
+from .funcs import FakeMethodMember
 from .mock import create_mock
 
 
@@ -15,9 +16,9 @@ class Mocker:
     def mock[T](self, cls: type[T]) -> T:
         return create_mock(cls, self.config)
 
-    def when[**P, R](self, func: Callable[P, R]) -> ProducerBuilder[P, R]:
+    def when[**P, R](self, func: Callable[P, R]) -> FakeMethodBuilder[P, R]:
         if not isinstance(func, FakeMethodMember):
             msg = f'Invalid argument to function `when`, expected class method, got: {type(func)}'
             raise TypeError(msg)
 
-        return ProducerBuilder(func)
+        return FakeMethodBuilder(func)

@@ -71,8 +71,8 @@ def test_return_multiple() -> None:
     with pytest.raises(ValueIsNotSetError):
         assert f.f() == 4
 
-    with pytest.raises(ValueError, match='value'):
-        mocker.when(f.f).return_(1, 2, times=3)
+    with pytest.raises(ValueError, match='times'):
+        mocker.when(f.f).return_(1, 2, times=3)  # type: ignore[call-overload]
 
 
 def test_raise_once() -> None:
