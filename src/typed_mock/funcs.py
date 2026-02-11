@@ -78,22 +78,6 @@ def mock[T](cls: type[T], strict: bool = True) -> T:  # noqa: FBT001, FBT002
     return Mock[T](cls, strict)  # type: ignore[return-value]
 
 
-def return_once[**P, R](value: R) -> Callable[P, R]:
-    return return_once_impl(value)  # type: ignore[return-value]
-
-
-def return_forever[**P, R](value: R) -> Callable[P, R]:
-    return return_forever_impl(value)  # type: ignore[return-value]
-
-
-def raise_once[**P, R, E: BaseException](error: E | type[E]) -> Callable[P, R]:
-    return raise_once_impl(error)  # type: ignore[return-value]
-
-
-def raise_forever[**P, R, E: BaseException](error: E | type[E]) -> Callable[P, R]:
-    return raise_forever_impl(error)  # type: ignore[return-value]
-
-
 class ProducerBuilder[**P, R]:
     def __init__(self, fake_method: FakeMethodMember) -> None:
         self.fake_method = fake_method

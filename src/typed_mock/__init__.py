@@ -1,5 +1,5 @@
 from .errors import FunctionNotFoundError, InvalidProducerError, ValueIsNotSetError
-from .funcs import Producer, ProducerBuilder, mock, raise_forever, raise_once, return_forever, return_once, when
+from .funcs import Producer, ProducerBuilder, mock, when
 
 __all__ = [
     'FunctionNotFoundError',
@@ -8,9 +8,5 @@ __all__ = [
     'ProducerBuilder',
     'ValueIsNotSetError',
     'mock',
-    'raise_forever',
-    'raise_once',
-    'return_forever',
-    'return_once',
     'when',
 ]
