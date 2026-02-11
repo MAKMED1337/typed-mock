@@ -1,27 +1,24 @@
 import inspect
 from collections.abc import Callable, Generator
-from typing import Any
-
-from pydantic import BaseModel, ConfigDict
 
 from .common import ValidationConfig
 from .errors import ValueIsNotSetError
 from .impl import raise_impl, return_impl
 
-type FakeMethod = Callable[..., Any]
-type Producer = Generator[FakeMethod]
+type FakeMethod[**P, R] = Callable[P, R]
+type Producer[**P, R] = Generator[FakeMethod[P, R]]
 
 
 class FakeMethodMember[**P, R]:
     def __init__(self, original_method: Callable[P, R] | None, config: ValidationConfig) -> None:
-        self.__producers: list[Producer] = []
+        self.__producers: list[Producer[P, R]] = []
         self.__original_method = original_method
         self.__config = config
 
-    def add_producer(self, producer: Producer) -> None:
+    def add_producer(self, producer: Producer[P, R]) -> None:
         self.__producers.append(producer)
 
-    def __call__(self, *args: object, **kwargs: object) -> object:
+    def __call__(self, *args: P.args, **kwargs: P.kwargs) -> object:
         if self.__config.validate_call_arguments and self.__original_method:
             sig = inspect.signature(self.__original_method)
             sig.bind(*args, **kwargs)
@@ -36,14 +33,6 @@ class FakeMethodMember[**P, R]:
             else:
                 return func(*args, **kwargs)
         raise ValueIsNotSetError
-
-
-class Data[T](BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    cls: type[T]
-    config: ValidationConfig
-    fake_methods: dict[str, FakeMethodMember[Any, Any]]
 
 
 class ProducerBuilder[**P, R]:

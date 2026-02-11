@@ -9,6 +9,7 @@ dependencies = ["pydantic>=2.12.5"]
 [dependency-groups]
 dev = [
     "mypy[faster-cache]>=1.19.1",
+    "pre-commit>=4.5.1",
     "pyright>=1.1.408",
     "pytest>=9.0.2",
 ]

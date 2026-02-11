@@ -27,7 +27,7 @@ class F:
     def cl(cls, x: int) -> int:
         return cls.g + x
 
-    def mult(self, *args: object, **kwargs: object) -> None:
+    def mult(self, *_: object, **__: object) -> None:
         return None
 
 

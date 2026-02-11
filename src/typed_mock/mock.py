@@ -9,7 +9,7 @@ def create_mock[T](cls: type[T], config: ValidationConfig) -> T:
     fake_methods: dict[str, FakeMethodMember[Any, Any]] = {}
 
     class Mock(cls):  # type: ignore[valid-type, misc]
-        def __getattribute__(self, name: str, /) -> Any:  # noqa: ANN401
+        def __getattribute__(self, name: str, /) -> object:
             result = super().__getattribute__(name)
             if callable(result):
                 return fake_methods.setdefault(name, FakeMethodMember(result, config))
