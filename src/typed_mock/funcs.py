@@ -33,17 +33,21 @@ class FakeMethodMember:
         raise ValueIsNotSetError
 
 
+class ChecksConfig(BaseModel):
+    validate_function_existance: bool = True
+
+
 class Data[T](BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     cls: type[T]
-    strict: bool
+    config: ChecksConfig
     fake_methods: dict[str, FakeMethodMember]
 
 
 class Mock[T]:
-    def __init__(self, cls: type[T], strict: bool = True) -> None:  # noqa: FBT001, FBT002
-        self.__data = Data[T](cls=cls, strict=strict, fake_methods={})
+    def __init__(self, cls: type[T], config: ChecksConfig) -> None:
+        self.__data = Data[T](cls=cls, config=config, fake_methods={})
 
     def __setattr__(self, name: str, value: object) -> None:
         if name in ('_Mock__data', '__orig_class__'):
@@ -57,7 +61,8 @@ class Mock[T]:
             raise InvalidProducerError from e
 
         data = self.__data
-        if data.strict and name not in data.cls.__dict__:
+        config = data.config
+        if config.validate_function_existance and name not in data.cls.__dict__:
             raise FunctionNotFoundError
 
         fake_methods = data.fake_methods
@@ -65,15 +70,12 @@ class Mock[T]:
 
     def __getattr__(self, name: str) -> object:
         data = self.__data
-        if data.strict and name not in data.cls.__dict__:
+        config = data.config
+        if config.validate_function_existance and name not in data.cls.__dict__:
             raise FunctionNotFoundError
 
         producers = data.fake_methods
         return producers.setdefault(name, FakeMethodMember())
-
-
-def mock[T](cls: type[T], strict: bool = True) -> T:  # noqa: FBT001, FBT002
-    return Mock[T](cls, strict)  # type: ignore[return-value]
 
 
 class ProducerBuilder[**P, R]:
@@ -99,9 +101,19 @@ class ProducerBuilder[**P, R]:
         return self
 
 
-def when[**P, R](func: Callable[P, R]) -> ProducerBuilder[P, R]:
-    if not isinstance(func, FakeMethodMember):
-        msg = f'Invalid argument to function `when`, expected class method, got: {type(func)}'
-        raise TypeError(msg)
+class Mocker:
+    def __init__(self, config: ChecksConfig | None = None) -> None:
+        if config is None:
+            config = ChecksConfig()
 
-    return ProducerBuilder(func)
+        self.config = config
+
+    def mock[T](self, cls: type[T]) -> T:
+        return Mock[T](cls, self.config)  # type: ignore[return-value]
+
+    def when[**P, R](self, func: Callable[P, R]) -> ProducerBuilder[P, R]:
+        if not isinstance(func, FakeMethodMember):
+            msg = f'Invalid argument to function `when`, expected class method, got: {type(func)}'
+            raise TypeError(msg)
+
+        return ProducerBuilder(func)
