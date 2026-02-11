@@ -3,8 +3,8 @@ from typing import Any
 
 import pytest
 
-from typed_mock import AttributeAccessedError, Mocker
-from typed_mock.common import ValidationConfig
+from typed_mock import AttributeAccessedError, Mocker, ValidationConfig
+from typed_mock.common import FOREVER
 
 
 def ff() -> int:
@@ -26,6 +26,9 @@ class F:
     @classmethod
     def cl(cls, x: int) -> int:
         return cls.g + x
+
+    def mult(self, *args: object, **kwargs: object) -> None:
+        return None
 
 
 def test_mocking_nonfunction() -> None:
@@ -53,3 +56,23 @@ def test_nonexistent_method() -> None:
 
     with pytest.raises(AttributeError):
         mocker.when(f.k).return_(5)  # type: ignore[attr-defined]
+
+
+def test_invalid_arguments() -> None:
+    mocker = Mocker()
+
+    f = mocker.mock(F)
+    with pytest.raises(TypeError):
+        f.f(34)  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        f.st()  # type: ignore[call-arg]
+
+    mocker.when(f.mult).return_(None, times=FOREVER)
+    f.mult()
+    f.mult(1314, 234, x=1234)
+
+    mocker = Mocker(ValidationConfig(validate_call_arguments=False))
+    f = mocker.mock(F)
+
+    mocker.when(f.f).return_(33)
+    f.f(34)  # type: ignore[call-arg]

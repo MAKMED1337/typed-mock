@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Callable, Generator
 from typing import Any
 
@@ -21,8 +22,9 @@ class FakeMethodMember[**P, R]:
         self.__producers.append(producer)
 
     def __call__(self, *args: object, **kwargs: object) -> object:
-        if self.__config.validate_call_arguments:
-            pass
+        if self.__config.validate_call_arguments and self.__original_method:
+            sig = inspect.signature(self.__original_method)
+            sig.bind(*args, **kwargs)
 
         producers = self.__producers
         while producers:
