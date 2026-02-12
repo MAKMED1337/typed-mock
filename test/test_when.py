@@ -2,6 +2,9 @@ import pytest
 
 from typed_mock import (
     FOREVER,
+    Args,
+    CalledWithWrongValueError,
+    InvalidArgumentsToCalledWithError,
     Mocker,
     ValueIsNotSetError,
 )
@@ -10,6 +13,9 @@ from typed_mock import (
 class F:
     def f(self) -> int:
         return 3
+
+    def g(self, x: int, y: int) -> int:
+        return x + y
 
 
 class FError(Exception):
@@ -104,3 +110,77 @@ def test_raise_forever() -> None:
     for _ in range(10):
         with pytest.raises(FError):
             f.f()
+
+
+def test_called_with_partial() -> None:
+    mocker = Mocker()
+    f = mocker.mock(F)
+
+    mocker.when(f.f).called_with_partial(return_=33)
+    assert f.f() == 33
+
+    mocker.when(f.g).called_with_partial(return_=33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_partial(1, return_=33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_partial(x=1, return_=33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_partial(y=2, return_=33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_partial(1, y=2, return_=33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_partial(-1, return_=33)
+    with pytest.raises(CalledWithWrongValueError):
+        f.g(1, 2)
+
+    mocker.when(f.g).called_with_partial(x=-1, return_=33)
+    with pytest.raises(CalledWithWrongValueError):
+        f.g(1, 2)
+
+    mocker.when(f.g).called_with_partial(y=-2, return_=33)
+    with pytest.raises(CalledWithWrongValueError):
+        f.g(1, 2)
+
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.f).called_with_partial(33, return_=43)
+
+
+def test_called_with_full() -> None:
+    mocker = Mocker()
+    f = mocker.mock(F)
+
+    mocker.when(f.f).called_with_full(Args(), 33)
+    assert f.f() == 33
+
+    mocker.when(f.g).called_with_full(Args(1, 2), 33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_full(Args(1, y=2), 33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_full(Args(x=1, y=2), 33)
+    assert f.g(1, 2) == 33
+
+    mocker.when(f.g).called_with_full(Args(-1, 2), 33)
+    with pytest.raises(CalledWithWrongValueError):
+        f.g(1, 2)
+
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.g).called_with_full(Args(), 33)  # type: ignore[call-arg]
+
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.g).called_with_full(Args(1), 33)  # type: ignore[call-arg]
+
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.g).called_with_full(Args(x=1), 33)  # type: ignore[call-arg]
+
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.g).called_with_full(Args(y=2), 33)  # type: ignore[call-arg]
+
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.f).called_with_full(Args(33), 43)  # type: ignore[call-arg]

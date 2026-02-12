@@ -1,5 +1,6 @@
 import inspect
 from collections.abc import Callable, Generator
+from inspect import Signature
 
 from .common import ValidationConfig
 from .errors import ValueIsNotSetError
@@ -9,7 +10,7 @@ type Producer[**P, R] = Generator[FakeMethod[P, R]]
 
 
 class FakeMethodMember[**P, R]:
-    def __init__(self, original_method: Callable[P, R] | None, config: ValidationConfig) -> None:
+    def __init__(self, original_method: Callable[P, R], config: ValidationConfig) -> None:
         self.__producers: list[Producer[P, R]] = []
         self.__original_method = original_method
         self.__config = config
@@ -17,9 +18,13 @@ class FakeMethodMember[**P, R]:
     def add_producer(self, producer: Producer[P, R]) -> None:
         self.__producers.append(producer)
 
+    @property
+    def signature(self) -> Signature:
+        return inspect.signature(self.__original_method)
+
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> object:
-        if self.__config.validate_call_arguments and self.__original_method:
-            sig = inspect.signature(self.__original_method)
+        sig = self.signature
+        if self.__config.validate_call_arguments and sig:
             sig.bind(*args, **kwargs)
 
         producers = self.__producers
