@@ -134,6 +134,9 @@ def test_called_with_partial() -> None:
     mocker.when(f.g).called_with_partial(1, y=2, return_=33)
     assert f.g(1, 2) == 33
 
+    mocker.when(f.g).called_with(1, return_=33)
+    assert f.g(1, 2) == 33
+
     mocker.when(f.g).called_with_partial(-1, return_=33)
     with pytest.raises(CalledWithWrongValueError):
         f.g(1, 2)

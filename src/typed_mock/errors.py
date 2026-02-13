@@ -1,7 +1,7 @@
 from .common import NOT_SET
 
 
-class MockingError(BaseException):
+class MockingError(Exception):
     pass
 
 

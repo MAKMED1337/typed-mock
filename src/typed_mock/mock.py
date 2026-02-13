@@ -2,7 +2,7 @@ from typing import cast
 
 from .common import ValidationConfig
 from .errors import FieldAccessedError
-from .funcs import FakeMethodMember
+from .fake_method import FakeMethodMember
 
 
 class Mock[T]:

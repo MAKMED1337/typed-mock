@@ -7,8 +7,8 @@ from .errors import (
     TestError,
     ValueIsNotSetError,
 )
+from .fake_method import Producer
 from .fake_method_builder import FakeMethodBuilder
-from .funcs import Producer
 from .mocker import Mocker
 
 __all__ = [
