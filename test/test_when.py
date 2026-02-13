@@ -149,6 +149,9 @@ def test_called_with_partial() -> None:
     with pytest.raises(InvalidArgumentsToCalledWithError):
         mocker.when(f.f).called_with_partial(33, return_=43)
 
+    with pytest.raises(InvalidArgumentsToCalledWithError):
+        mocker.when(f.f).called_with_partial(x=1234, return_=43)
+
 
 def test_called_with_full() -> None:
     mocker = Mocker()

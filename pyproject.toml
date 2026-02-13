@@ -1,7 +1,7 @@
 [project]
 name = "typed-mock"
 version = "0.1.0"
-description = "Add your description here"
+description = "Add typing mocking to python"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = ["pydantic>=2.12.5"]

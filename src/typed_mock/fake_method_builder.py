@@ -10,11 +10,11 @@ class FakeMethodBuilder[**P, R]:
         self.fake_method = fake_method
 
     @overload
-    def return_(self, *values: R) -> 'FakeMethodBuilder[P, R]': ...
+    def return_(self, /, *values: R) -> 'FakeMethodBuilder[P, R]': ...
     @overload
     def return_(self, value: R, /, *, times: int = 1) -> 'FakeMethodBuilder[P, R]': ...
 
-    def return_(self, *values: R, times: int = 1) -> 'FakeMethodBuilder[P, R]':
+    def return_(self, /, *values: R, times: int = 1) -> 'FakeMethodBuilder[P, R]':
         if not values:
             raise ValueError('No values specified')
         if len(values) > 1 and times != 1:
@@ -40,7 +40,5 @@ class FakeMethodBuilder[**P, R]:
         return self
 
     def called_with_full(self, args: Args[P], return_: R) -> 'FakeMethodBuilder[P, R]':
-        self.fake_method.add_producer(
-            called_with_full_impl(args, return_, self.fake_method.signature)
-        )
+        self.fake_method.add_producer(called_with_full_impl(args, return_, self.fake_method.signature))
         return self
