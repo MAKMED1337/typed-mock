@@ -15,6 +15,7 @@ class F:
         return 3
 
     def g(self, x: int, y: int) -> int:
+        """Test docstring"""
         return x + y
 
 
@@ -190,3 +191,11 @@ def test_called_with_full() -> None:
 
     with pytest.raises(InvalidArgumentsToCalledWithError):
         mocker.when(f.f).called_with_full(Args(33), 43)  # type: ignore[call-arg]
+
+
+def test_wraps() -> None:
+    mocker = Mocker()
+    f = mocker.mock(F)
+
+    assert f.g.__name__ == 'g'
+    assert f.g.__doc__ == 'Test docstring'

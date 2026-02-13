@@ -1,3 +1,4 @@
+import functools
 import inspect
 from collections.abc import Awaitable, Callable, Generator
 from inspect import Signature
@@ -21,6 +22,7 @@ class FakeMethodMember[**P, R]:
         self.__producers: list[Producer[P, R]] = []
         self.__original_method = original_method
         self.__config = config
+        functools.update_wrapper(self, original_method)
 
     def add_producer(self, producer: Producer[P, R]) -> None:
         self.__producers.append(producer)

@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from typing import Any
 
 import pytest
 
@@ -13,7 +12,7 @@ def ff() -> int:
 
 class F:
     g = 43
-    lam: Callable[..., Any] = lambda: 5
+    lam: Callable[..., int] = lambda: 5
     func = ff
 
     def f(self) -> int:
