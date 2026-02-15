@@ -2,8 +2,7 @@ from collections.abc import Callable
 
 import pytest
 
-from typed_mock import FieldAccessedError, Mocker, ValidationConfig
-from typed_mock.common import FOREVER
+from typed_mock import FOREVER, FieldAccessedError, Mocker, ValidationConfig
 
 
 def ff() -> int:
@@ -11,6 +10,8 @@ def ff() -> int:
 
 
 class F:
+    """F class"""
+
     g = 43
     lam: Callable[..., int] = lambda: 5
     func = ff
@@ -75,3 +76,14 @@ def test_invalid_arguments() -> None:
 
     mocker.when(f.f).return_(33)
     f.f(34)  # type: ignore[call-arg]
+
+
+def test_wraps_class() -> None:
+    mocker = Mocker()
+    f = mocker.mock(F)
+    assert isinstance(f, F)
+    # Unfortunately I have no idea how to fake type(f) is F
+
+    mocker = Mocker(ValidationConfig(raise_on_field_access=False))
+    f = mocker.mock(F)
+    assert f.__doc__ == 'F class'

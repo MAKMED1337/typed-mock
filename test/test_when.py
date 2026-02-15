@@ -11,12 +11,20 @@ from typed_mock import (
 
 
 class F:
+    """F class"""
+
     def f(self) -> int:
         return 3
 
     def g(self, x: int, y: int) -> int:
         """Test docstring"""
         return x + y
+
+
+class Q:
+    def __getattribute__(self, name: str, /) -> object:
+        """Q"""
+        return super().__getattribute__(name)
 
 
 class FError(Exception):
@@ -193,9 +201,13 @@ def test_called_with_full() -> None:
         mocker.when(f.f).called_with_full(Args(33), 43)  # type: ignore[call-arg]
 
 
-def test_wraps() -> None:
+def test_wraps_method() -> None:
     mocker = Mocker()
     f = mocker.mock(F)
 
     assert f.g.__name__ == 'g'
     assert f.g.__doc__ == 'Test docstring'
+
+    q = mocker.mock(Q)
+    assert q.__getattribute__.__name__ == '__getattribute__'
+    assert q.__getattribute__.__doc__ == 'Q'

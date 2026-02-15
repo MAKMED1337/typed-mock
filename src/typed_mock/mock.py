@@ -12,6 +12,9 @@ class Mock[T]:
         self.__fake_methods: dict[str, FakeMethodMember[..., object]] = {}
 
     def __getattribute__(self, name: str, /) -> object:
+        if name == '__class__':
+            return type(self.__obj)
+
         if name in ('_Mock__obj', '_Mock__config', '_Mock__fake_methods'):
             return super().__getattribute__(name)
 
