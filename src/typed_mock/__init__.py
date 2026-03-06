@@ -7,16 +7,18 @@ from .errors import (
     TestError,
     ValueIsNotSetError,
 )
-from .fake_method import Producer
-from .fake_method_builder import FakeMethodBuilder
+from .fake_function import Producer
+from .fake_function_builder import FakeFunctionBuilder
 from .mocker import Mocker
+from .patched import PATCHED_FUNCTIONS
 
 __all__ = [
     'FOREVER',
     'NOT_SET',
+    'PATCHED_FUNCTIONS',
     'Args',
     'CalledWithWrongValueError',
-    'FakeMethodBuilder',
+    'FakeFunctionBuilder',
     'FieldAccessedError',
     'InvalidArgumentsToCalledWithError',
     'Mocker',
@@ -24,5 +26,5 @@ __all__ = [
     'Producer',
     'TestError',
     'ValidationConfig',
-    'ValueIsNotSetError',
+    'ValueIsNotSetError'
 ]
