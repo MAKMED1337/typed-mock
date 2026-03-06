@@ -2,8 +2,8 @@ from collections.abc import Awaitable, Callable
 from typing import overload
 
 from .common import ValidationConfig
-from .fake_method import FakeMethodMember
-from .fake_method_builder import FakeMethodBuilder
+from .fake_function import FakeFunction
+from .fake_function_builder import FakeFunctionBuilder
 from .mock import create_mock
 
 
@@ -18,13 +18,10 @@ class Mocker:
         return create_mock(cls, self.config)
 
     @overload
-    def when[**P, R](self, func: Callable[P, Awaitable[R]]) -> FakeMethodBuilder[P, R]: ...
+    def when[**P, R](self, func: Callable[P, Awaitable[R]]) -> FakeFunctionBuilder[P, R]: ...
     @overload
-    def when[**P, R](self, func: Callable[P, R]) -> FakeMethodBuilder[P, R]: ...
+    def when[**P, R](self, func: Callable[P, R]) -> FakeFunctionBuilder[P, R]: ...
 
-    def when[**P, R](self, func: Callable[P, R | Awaitable[R]]) -> FakeMethodBuilder[P, R]:
-        if not isinstance(func, FakeMethodMember):
-            msg = f'Invalid argument to function `when`, expected class method, got: {type(func)}'
-            raise TypeError(msg)
-
-        return FakeMethodBuilder(func)
+    def when[**P, R](self, func: Callable[P, R | Awaitable[R]]) -> FakeFunctionBuilder[P, R]:
+        fake = func if isinstance(func, FakeFunction) else FakeFunction(func, self.config)
+        return FakeFunctionBuilder(fake)

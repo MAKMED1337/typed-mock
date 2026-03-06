@@ -87,3 +87,31 @@ def test_wraps_class() -> None:
     mocker = Mocker(ValidationConfig(raise_on_field_access=False))
     f = mocker.mock(F)
     assert f.__doc__ == 'F class'
+
+
+def test_effect_mocks_only() -> None:
+    mocker = Mocker()
+
+    f = mocker.mock(F)
+    mocker.when(f.f).return_(1, times=FOREVER)
+    assert f.f() == 1
+
+    g = F()
+    assert g.f() == 3
+
+
+def test_mock_static() -> None:
+    mocker = Mocker()
+
+    def qq() -> int:
+        """ds"""
+        return 3
+
+    mocker.when(qq).return_(4, times=FOREVER)
+
+    assert qq() == 4
+    with pytest.raises(TypeError):
+        assert qq(43) == 4  # type: ignore[call-arg]
+
+    assert qq.__doc__ == 'ds'
+    assert qq.__name__ == 'qq'
