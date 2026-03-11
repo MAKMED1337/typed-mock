@@ -1,34 +1,9 @@
-from collections.abc import Callable
 
 import pytest
 
 from typed_mock import FOREVER, FieldAccessedError, Mocker, ValidationConfig
 
-
-def ff() -> int:
-    return 5
-
-
-class F:
-    """F class"""
-
-    g = 43
-    lam: Callable[..., int] = lambda: 5
-    func = ff
-
-    def f(self) -> int:
-        return 3
-
-    @staticmethod
-    def st(x: int) -> int:
-        return 4 + x
-
-    @classmethod
-    def cl(cls, x: int) -> int:
-        return cls.g + x
-
-    def mult(self, *_: object, **__: object) -> None:
-        return None
+from .common import F
 
 
 def test_mocking_nonfunction() -> None:
@@ -40,7 +15,7 @@ def test_mocking_nonfunction() -> None:
     _ = f.lam
     _ = f.func  # type: ignore[misc]
     with pytest.raises(FieldAccessedError):
-        _ = f.g
+        _ = f.val
 
     mocker = Mocker(ValidationConfig(raise_on_field_access=False))
     f = mocker.mock(F)
@@ -100,18 +75,8 @@ def test_effect_mocks_only() -> None:
     assert g.f() == 3
 
 
-def test_mock_static() -> None:
+def test_unset_function() -> None:
     mocker = Mocker()
 
-    def qq() -> int:
-        """ds"""
-        return 3
-
-    mocker.when(qq).return_(4, times=FOREVER)
-
-    assert qq() == 4
-    with pytest.raises(TypeError):
-        assert qq(43) == 4  # type: ignore[call-arg]
-
-    assert qq.__doc__ == 'ds'
-    assert qq.__name__ == 'qq'
+    f = mocker.mock(F)
+    f.f()

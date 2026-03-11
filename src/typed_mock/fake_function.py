@@ -1,11 +1,14 @@
 import functools
 import inspect
 from collections.abc import Awaitable, Callable, Generator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .common import ValidationConfig
 from .errors import ValueIsNotSetError
 from .patched import PATCHED_FUNCTIONS
+
+if TYPE_CHECKING:
+    from .mocker import Mocker
 
 type FakeMethod[**P, R] = Callable[P, R]
 type Producer[**P, R] = Generator[FakeMethod[P, R]]
@@ -19,7 +22,7 @@ def _make_coro[**P, R](func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) 
 
 
 class FakeFunction[**P, R]:
-    def __init__(self, original_method: Callable[P, R], config: ValidationConfig) -> None:
+    def __init__(self, original_method: Callable[P, R], config: ValidationConfig, owner: 'Mocker') -> None:
         self.__producers: list[Producer[P, R]] = []
         self.__original_method = original_method
         self.__config = config
@@ -32,12 +35,13 @@ class FakeFunction[**P, R]:
             setattr(inst, name, self)
             return
 
-        index = len(PATCHED_FUNCTIONS)
-        PATCHED_FUNCTIONS.append(self)
+        patched = PATCHED_FUNCTIONS.setdefault(id(owner), [])
+        index = len(patched)
+        patched.append((original_method, original_method.__code__, self))
 
         function_code = f"""def _trampoline(*args, **kwargs):
             from typed_mock import PATCHED_FUNCTIONS
-            self = PATCHED_FUNCTIONS[{index}]
+            self = PATCHED_FUNCTIONS[{id(owner)}][{index}][2]
             return self(*args, **kwargs)
         """
 

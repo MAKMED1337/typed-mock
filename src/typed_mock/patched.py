@@ -1,8 +1,10 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from typing import Any
+
+    from collections.abc import Callable
+    from types import CodeType
 
     from .fake_function import FakeFunction
 
-PATCHED_FUNCTIONS: list['FakeFunction[..., Any]'] = []
+PATCHED_FUNCTIONS: dict[int, list['tuple[Callable[..., Any], CodeType, FakeFunction[..., Any]]']] = {}
