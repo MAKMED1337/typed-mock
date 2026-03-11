@@ -23,7 +23,7 @@ def test_mocking_local_function() -> None:
     assert qq.__doc__ == 'ds'
     assert qq.__name__ == 'qq'
 
-    mocker.unpatch_global()
+    mocker.unpatch()
     assert qq() == 3
 
 
@@ -44,6 +44,15 @@ def test_mocking_global() -> None:
         mocker.when(ff).return_(4, times=2)
         assert ff() == 4
     assert ff() == 5
+
+
+def test_mocking_class_method() -> None:
+    with Mocker() as mocker:
+        f = F()  # Default (not mocked) class
+        mocker.when(f.cl).return_(10, times=FOREVER)
+        assert f.cl(1) == 10
+
+    assert f.cl(1) == 44
 
 
 def test_mocking_static_method() -> None:

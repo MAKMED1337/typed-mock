@@ -33,6 +33,8 @@ class FakeFunction[**P, R]:
             name = original_method.__name__
             functools.update_wrapper(self, original_method)
             setattr(inst, name, self)
+            if inspect.isclass(inst):
+                owner.patched_class_methods.append(original_method)
             return
 
         patched = PATCHED_FUNCTIONS.setdefault(id(owner), [])
