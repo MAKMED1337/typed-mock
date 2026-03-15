@@ -1,10 +1,10 @@
 import functools
 import inspect
 from collections.abc import Awaitable, Callable, Generator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from .common import ValidationConfig
-from .errors import ValueIsNotSetError
+from .errors import InvalidCallableError, ValueIsNotSetError
 from .patched import PATCHED_FUNCTIONS
 
 if TYPE_CHECKING:
@@ -22,11 +22,18 @@ def _make_coro[**P, R](func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) 
 
 
 class FakeFunction[**P, R]:
-    def __init__(self, original_method: Callable[P, R], config: ValidationConfig, owner: 'Mocker') -> None:
+    def __init__(self, original_method: Callable[P, R], config: ValidationConfig, owner: Optional['Mocker']) -> None:
         self.__producers: list[Producer[P, R]] = []
         self.__original_method = original_method
         self.__config = config
-        self.signature = inspect.signature(original_method)
+        try:
+            self.signature = inspect.signature(original_method)
+        except BaseException as e:
+            raise InvalidCallableError from e
+
+        if not owner:
+            functools.update_wrapper(self, original_method)
+            return
 
         if inspect.ismethod(original_method):
             inst = original_method.__self__

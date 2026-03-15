@@ -3,6 +3,7 @@ from .errors import (
     CalledWithWrongValueError,
     FieldAccessedError,
     InvalidArgumentsToCalledWithError,
+    InvalidCallableError,
     MockingError,
     TestError,
     ValueIsNotSetError,
@@ -21,10 +22,11 @@ __all__ = [
     'FakeFunctionBuilder',
     'FieldAccessedError',
     'InvalidArgumentsToCalledWithError',
+    'InvalidCallableError',
     'Mocker',
     'MockingError',
     'Producer',
     'TestError',
     'ValidationConfig',
-    'ValueIsNotSetError'
+    'ValueIsNotSetError',
 ]

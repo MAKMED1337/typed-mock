@@ -1,7 +1,7 @@
-
 import pytest
 
-from typed_mock import FOREVER, FieldAccessedError, Mocker, ValidationConfig
+from typed_mock import FOREVER, FieldAccessedError, Mocker, ValidationConfig, ValueIsNotSetError
+from typed_mock.errors import InvalidCallableError
 
 from .common import F
 
@@ -12,16 +12,21 @@ def test_mocking_nonfunction() -> None:
 
     _ = f.st
     _ = f.cl
-    _ = f.lam
-    _ = f.func  # type: ignore[misc]
+    with pytest.raises(InvalidCallableError):
+        _ = f.lam
+    with pytest.raises(InvalidCallableError):
+        _ = f.func  # type: ignore[misc]
     with pytest.raises(FieldAccessedError):
         _ = f.val
 
     mocker = Mocker(ValidationConfig(raise_on_field_access=False))
     f = mocker.mock(F)
-    _ = f.g
-    _ = f.lam
-    _ = f.func  # type: ignore[misc]
+
+    _ = f.val
+    with pytest.raises(InvalidCallableError):
+        _ = f.lam
+    with pytest.raises(InvalidCallableError):
+        _ = f.func  # type: ignore[misc]
 
 
 def test_nonexistent_method() -> None:
@@ -79,4 +84,5 @@ def test_unset_function() -> None:
     mocker = Mocker()
 
     f = mocker.mock(F)
-    f.f()
+    with pytest.raises(ValueIsNotSetError):
+        f.f()
