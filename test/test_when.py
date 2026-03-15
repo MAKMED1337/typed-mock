@@ -9,16 +9,7 @@ from typed_mock import (
     ValueIsNotSetError,
 )
 
-
-class F:
-    """F class"""
-
-    def f(self) -> int:
-        return 3
-
-    def g(self, x: int, y: int) -> int:
-        """Test docstring"""
-        return x + y
+from .common import F
 
 
 class Q:

@@ -1,34 +1,9 @@
-from collections.abc import Callable
-
 import pytest
 
-from typed_mock import FOREVER, FieldAccessedError, Mocker, ValidationConfig
+from typed_mock import FOREVER, FieldAccessedError, Mocker, ValidationConfig, ValueIsNotSetError
+from typed_mock.errors import InvalidCallableError
 
-
-def ff() -> int:
-    return 5
-
-
-class F:
-    """F class"""
-
-    g = 43
-    lam: Callable[..., int] = lambda: 5
-    func = ff
-
-    def f(self) -> int:
-        return 3
-
-    @staticmethod
-    def st(x: int) -> int:
-        return 4 + x
-
-    @classmethod
-    def cl(cls, x: int) -> int:
-        return cls.g + x
-
-    def mult(self, *_: object, **__: object) -> None:
-        return None
+from .common import F
 
 
 def test_mocking_nonfunction() -> None:
@@ -37,16 +12,21 @@ def test_mocking_nonfunction() -> None:
 
     _ = f.st
     _ = f.cl
-    _ = f.lam
-    _ = f.func  # type: ignore[misc]
+    with pytest.raises(InvalidCallableError):
+        _ = f.lam
+    with pytest.raises(InvalidCallableError):
+        _ = f.func  # type: ignore[misc]
     with pytest.raises(FieldAccessedError):
-        _ = f.g
+        _ = f.val
 
     mocker = Mocker(ValidationConfig(raise_on_field_access=False))
     f = mocker.mock(F)
-    _ = f.g
-    _ = f.lam
-    _ = f.func  # type: ignore[misc]
+
+    _ = f.val
+    with pytest.raises(InvalidCallableError):
+        _ = f.lam
+    with pytest.raises(InvalidCallableError):
+        _ = f.func  # type: ignore[misc]
 
 
 def test_nonexistent_method() -> None:
@@ -87,3 +67,22 @@ def test_wraps_class() -> None:
     mocker = Mocker(ValidationConfig(raise_on_field_access=False))
     f = mocker.mock(F)
     assert f.__doc__ == 'F class'
+
+
+def test_effect_mocks_only() -> None:
+    mocker = Mocker()
+
+    f = mocker.mock(F)
+    mocker.when(f.f).return_(1, times=FOREVER)
+    assert f.f() == 1
+
+    g = F()
+    assert g.f() == 3
+
+
+def test_unset_function() -> None:
+    mocker = Mocker()
+
+    f = mocker.mock(F)
+    with pytest.raises(ValueIsNotSetError):
+        f.f()

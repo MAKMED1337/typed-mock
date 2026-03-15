@@ -13,6 +13,10 @@ class InvalidArgumentsToCalledWithError(MockingError):
     pass
 
 
+class InvalidCallableError(MockingError):
+    pass
+
+
 class ValueIsNotSetError(TestError):
     pass
 
