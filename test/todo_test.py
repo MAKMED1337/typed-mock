@@ -1,4 +1,3 @@
-
 from typed_mock import FOREVER, Mocker
 
 from .common import F

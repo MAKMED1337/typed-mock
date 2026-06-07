@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 type FakeMethod[**P, R] = Callable[P, R]
 type Producer[**P, R] = Generator[FakeMethod[P, R]]
+type MethodPatcher = Callable[[object, str, 'FakeFunction[..., Any]'], None]
 
 
 def _make_coro[**P, R](func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> Awaitable[R]:
@@ -22,7 +23,13 @@ def _make_coro[**P, R](func: Callable[P, R], *args: P.args, **kwargs: P.kwargs) 
 
 
 class FakeFunction[**P, R]:
-    def __init__(self, original_method: Callable[P, R], config: ValidationConfig, owner: Optional['Mocker']) -> None:
+    def __init__(
+        self,
+        original_method: Callable[P, R],
+        config: ValidationConfig,
+        owner: Optional['Mocker'],
+        method_patcher: MethodPatcher | None = None,
+    ) -> None:
         self.__producers: list[Producer[P, R]] = []
         self.__original_method = original_method
         self.__config = config
@@ -39,9 +46,8 @@ class FakeFunction[**P, R]:
             inst = original_method.__self__
             name = original_method.__name__
             functools.update_wrapper(self, original_method)
-            setattr(inst, name, self)
-            if inspect.isclass(inst):
-                owner.patched_class_methods.append(original_method)
+            if method_patcher is not None:
+                method_patcher(inst, name, self)
             return
 
         patched = PATCHED_FUNCTIONS.setdefault(id(owner), [])
