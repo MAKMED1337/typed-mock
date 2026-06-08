@@ -13,8 +13,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit:
-    name: Pre-commit
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -32,8 +32,17 @@ jobs:
       - name: Install dependencies
         run: uv sync --locked --all-groups
 
-      - name: Run pre-commit
-        run: uv run pre-commit run --all-files
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run mypy --strict .
+
+      - name: Pyright
+        run: uv run pyright
 
   tests:
     name: Tests (Python ${{ matrix.python-version }})
